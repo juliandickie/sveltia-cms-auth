@@ -1,3 +1,12 @@
 name = "sveltia-cms-auth"
 main = "src/index.js"
 compatibility_date = "2023-03-24"
+
+# Local addition (Pro Marketing, 2026-08-11) - restrict which site hostnames
+# may use this authenticator. Localhost covers dev on any port; the workers.dev
+# entry is the unlisted Ascot deploy; ascot.net.au covers go-live. Extend the
+# list when another client site adopts Sveltia.
+[vars]
+# localhost:* matters - Sveltia sends its host WITH the port (localhost:4321),
+# and the Worker's match is anchored, so bare localhost alone rejects dev.
+ALLOWED_DOMAINS = "localhost,localhost:*,pmw-ascot-2026.julian-18d.workers.dev,ascot.net.au,*.ascot.net.au"

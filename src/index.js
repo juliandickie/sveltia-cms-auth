@@ -107,7 +107,14 @@ const outputHTML = ({ provider = 'unknown', token, error, errorCode, env = {} })
 
   return new Response(
     `
-      <!doctype html><html><body><script>
+      <!doctype html><html><head><title>Authentication</title></head>
+      <body style="font-family: system-ui, sans-serif; max-width: 34em; margin: 4em auto; line-height: 1.5;">
+      <div id="fallback" hidden>
+        <h1 style="font-size: 1.2em;">One more step</h1>
+        <p id="fallback-msg"></p>
+        <p style="color: #666; font-size: 0.85em;" id="fallback-diag"></p>
+      </div>
+      <script>
         (() => {
           const trustedPatterns = ${serialize(getDomainPatterns(env.ALLOWED_DOMAINS))};
           const hasToken = ${serialize(!!token)};
@@ -120,6 +127,26 @@ const outputHTML = ({ provider = 'unknown', token, error, errorCode, env = {} })
             } catch {
               return false;
             }
+          };
+
+          // Local hardening (Pro Marketing, 2026-08-11) - upstream renders a
+          // blank page that silently does nothing when window.opener is null
+          // (observed live after GitHub's first-authorisation interstitial) or
+          // when the CMS tab never echoes. Both now surface guidance instead.
+          const payload = ${JSON.stringify(content)};
+          const isError = ${JSON.stringify(state)} === 'error';
+          let echoed = false;
+
+          const showFallback = (diag) => {
+            document.getElementById('fallback-msg').textContent = isError
+              ? 'Sign-in could not complete - ' + (payload.error || 'unknown error') +
+                '. Close this window and try again from the CMS tab.'
+              : 'You are signed in, but this window could not hand the sign-in back to the ' +
+                'CMS tab automatically (this can happen on the very first authorisation). ' +
+                'Close this window, return to the CMS tab, and click the sign-in button ' +
+                'again - it completes instantly.';
+            document.getElementById('fallback-diag').textContent = 'diagnostic - ' + diag;
+            document.getElementById('fallback').hidden = false;
           };
 
           window.addEventListener('message', ({ data, origin }) => {
@@ -135,12 +162,23 @@ const outputHTML = ({ provider = 'unknown', token, error, errorCode, env = {} })
               return;
             }
 
+            echoed = true;
             window.opener?.postMessage(
               'authorization:${provider}:${state}:${JSON.stringify(content)}',
               origin
             );
           });
           window.opener?.postMessage('authorizing:${provider}', '*');
+
+          if (!window.opener) {
+            showFallback('window.opener is null - the popup lost its link to the CMS tab');
+          } else {
+            setTimeout(() => {
+              if (!echoed) {
+                showFallback('no reply from the CMS tab within 4 seconds - its listener is gone');
+              }
+            }, 4000);
+          }
         })();
       </script></body></html>
     `,
