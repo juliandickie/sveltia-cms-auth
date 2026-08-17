@@ -139,7 +139,8 @@ const outputHTML = ({ provider = 'unknown', token, error, errorCode, env = {} })
 
           const showFallback = (diag) => {
             document.getElementById('fallback-msg').textContent = isError
-              ? 'Sign-in could not complete - ' + (payload.error || 'unknown error') +
+              ? 'Sign-in could not complete - ' +
+                (payload.error || 'unknown error').replace(/[.]$/, '') +
                 '. Close this window and try again from the CMS tab.'
               : 'You are signed in, but this window could not hand the sign-in back to the ' +
                 'CMS tab automatically (this can happen on the very first authorisation). ' +
