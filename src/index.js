@@ -108,7 +108,8 @@ const outputHTML = ({ provider = 'unknown', token, error, errorCode, env = {} })
   return new Response(
     `
       <!doctype html><html><head><title>Authentication</title></head>
-      <body style="font-family: system-ui, sans-serif; max-width: 34em; margin: 4em auto; line-height: 1.5;">
+      <body style="font-family: system-ui, sans-serif; max-width: 34em; margin: 4em auto;
+        line-height: 1.5;">
       <div id="fallback" hidden>
         <h1 style="font-size: 1.2em;">One more step</h1>
         <p id="fallback-msg"></p>
@@ -131,7 +132,7 @@ const outputHTML = ({ provider = 'unknown', token, error, errorCode, env = {} })
 
           // Local hardening (Pro Marketing, 2026-08-11) - upstream renders a
           // blank page that silently does nothing when window.opener is null
-          // (observed live after GitHub's first-authorisation interstitial) or
+          // (observed live after GitHub's first-authorization interstitial) or
           // when the CMS tab never echoes. Both now surface guidance instead.
           const payload = ${JSON.stringify(content)};
           const isError = ${JSON.stringify(state)} === 'error';
@@ -143,7 +144,7 @@ const outputHTML = ({ provider = 'unknown', token, error, errorCode, env = {} })
                 (payload.error || 'unknown error').replace(/[.]$/, '') +
                 '. Close this window and try again from the CMS tab.'
               : 'You are signed in, but this window could not hand the sign-in back to the ' +
-                'CMS tab automatically (this can happen on the very first authorisation). ' +
+                'CMS tab automatically (this can happen on the very first authorization). ' +
                 'Close this window, return to the CMS tab, and click the sign-in button ' +
                 'again - it completes instantly.';
             document.getElementById('fallback-diag').textContent = 'diagnostic - ' + diag;
